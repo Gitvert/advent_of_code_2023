@@ -14,6 +14,7 @@ fun day2 (lines: List<String>) {
     
     println("Day 2 part 1: $sum")
     println("Day 2 part 2: $powerSum")
+    println()
 }
 
 fun getIdToSum(line: String): Int {
