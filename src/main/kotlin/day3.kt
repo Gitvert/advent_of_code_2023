@@ -10,6 +10,7 @@ fun day3 (lines: List<String>) {
 
     println("Day 3 part 1: $partNumberSum")
     println("Day 3 part 2: $gearRatioSum")
+    println()
 }
 
 fun findAdjacentGears(lines: List<String>, partNumbers: List<PartNumber>) {
