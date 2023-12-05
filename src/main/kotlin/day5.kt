@@ -21,10 +21,35 @@ fun day5 (lines: List<String>) {
             humidityToLocation,
         )
     }
-
+    
     println("Day 5 part 1: ${locations.min()}")
-    println("Day 5 part 2: ")
-    println()
+    
+    val ranges = parseSeedRanges(lines)
+    
+    var location = 0L
+    
+    while (location < Long.MAX_VALUE) {
+        val seed = locationToSeed(
+            location,
+            seedToSoil,
+            soilToFertilizer,
+            fertilizerToWater,
+            waterToLight,
+            lightToTemperature,
+            temperatureToHumidity,
+            humidityToLocation,
+        )
+        
+        for (i in ranges.indices) {
+            if (seed >= ranges[i].first && seed <= ranges[i].second) {
+                println("Day 5 part 2: $location")
+                println()
+                return
+            }
+        }
+        
+        location++
+    }
 }
 
 fun seedToLocation(
@@ -49,7 +74,7 @@ fun seedToLocation(
 
 fun findDestination(destinationMap: List<AlmanacEntry>, source: Long): Long {
     destinationMap.forEach { 
-        if (it.sourceRangeStart <= source && (it.sourceRangeStart + it.rangeLength) >= source ) {
+        if (it.sourceRangeStart <= source && (it.sourceRangeStart + it.rangeLength - 1) >= source ) {
             return source + (it.destinationRangeStart - it.sourceRangeStart)
         }
     }
@@ -57,8 +82,49 @@ fun findDestination(destinationMap: List<AlmanacEntry>, source: Long): Long {
     return source
 }
 
+fun locationToSeed(
+    location: Long,
+    seedToSoil: List<AlmanacEntry>,
+    soilToFertilizer: List<AlmanacEntry>,
+    fertilizerToWater: List<AlmanacEntry>,
+    waterToLight: List<AlmanacEntry>,
+    lightToTemperature: List<AlmanacEntry>,
+    temperatureToHumidity: List<AlmanacEntry>,
+    humidityToLocation: List<AlmanacEntry>
+): Long { 
+    val humidity = findSource(humidityToLocation, location)
+    val temperature = findSource(temperatureToHumidity, humidity)
+    val light = findSource(lightToTemperature, temperature)
+    val water = findSource(waterToLight, light)
+    val fertilizer = findSource(fertilizerToWater, water)
+    val soil = findSource(soilToFertilizer, fertilizer)
+    
+    return findSource(seedToSoil, soil)
+}
+
+fun findSource(destinationMap: List<AlmanacEntry>, destination: Long): Long {
+    destinationMap.forEach { 
+        if (it.destinationRangeStart <= destination && (it.destinationRangeStart + it.rangeLength - 1 >= destination)) {
+            return destination + (it.sourceRangeStart - it.destinationRangeStart)
+        }
+    }
+    
+    return destination
+}
+
 fun parseSeeds(lines: List<String>): List<Long> {
     return lines[0].split(": ")[1].split(" ").map { it.toLong() }
+}
+
+fun parseSeedRanges(lines: List<String>): List<Pair<Long, Long>> {
+    val numbers = lines[0].split(": ")[1].split(" ").map { it.toLong() }
+    val ranges = mutableListOf<Pair<Long, Long>>()
+    
+    for (i in numbers.indices step 2) {
+        ranges.add(Pair(numbers[i], numbers[i] + numbers[i+1] - 1))
+    }
+    
+    return ranges
 }
 
 fun parseAlmanacEntry(lines: List<String>, identifier: String): List<AlmanacEntry> {
