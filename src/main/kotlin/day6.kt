@@ -1,14 +1,17 @@
 fun day6 (lines: List<String>) {
     
     val races = parseRaces(lines)
-    var answer = 1L
+    var part1 = 1L
     
     races.forEach { 
-        answer *= getWaysToWin(it)
+        part1 *= getWaysToWin(it)
     }
+    
+    val longRace = parseRace(lines)
+    val part2 = getWaysToWin(longRace)
 
-    println("Day 6 part 1: $answer")
-    println("Day 6 part 2: ")
+    println("Day 6 part 1: $part1")
+    println("Day 6 part 2: $part2")
     println()
 }
 
@@ -22,6 +25,13 @@ fun getWaysToWin(race: Race): Int {
     }
     
     return distances.filter { it > race.recordDistance }.count()
+}
+
+fun parseRace(lines: List<String>): Race {
+    val time = lines[0].replace("\\s+".toRegex(), "").split(":")[1].split(" ").map { it.toLong() }[0]
+    val distance = lines[1].replace("\\s+".toRegex(), "").split(":")[1].split(" ").map { it.toLong() }[0]
+    
+    return Race(time, distance)
 }
 
 fun parseRaces(lines: List<String>): List<Race> {
