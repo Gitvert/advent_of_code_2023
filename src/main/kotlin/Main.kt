@@ -8,6 +8,10 @@ fun main(args: Array<String>) {
     val timings = mutableMapOf<String, Long>()
 
     for (i in 1..daySolvers.size) {
+        if (i == 5) {
+            continue
+        }
+        
         val timeTaken = measureTimeMillis {
             daySolvers[i-1](readFile("day$i.txt"))
         }
