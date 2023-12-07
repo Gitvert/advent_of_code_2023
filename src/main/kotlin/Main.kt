@@ -20,13 +20,13 @@ fun main(args: Array<String>) {
         timings["day$i"] = timeTaken
     }
 
-    println("Total execution time was: ${timings.values.sum()} ms")
+    /*println("Total execution time was: ${timings.values.sum()} ms")
     println()
     println("Execution time for each day was: ")
 
     timings.toList().sortedByDescending { it.second }.forEach {
         println("${it.first}: ${it.second} ms")
-    }
+    }*/
 }
 
 fun readFile(fileName: String): List<String> {
