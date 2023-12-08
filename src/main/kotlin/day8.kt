@@ -2,10 +2,64 @@ fun day8 (lines: List<String>) {
     val map = parseDesertMap(lines)
     
     val steps = countSteps(lines[0], map)
-
     println("Day 8 part 1: $steps")
-    println("Day 8 part 2: ")
+    
+    val ghostSteps = countGhostSteps(lines[0], map)
+    var lcm = ghostSteps[0]
+    
+    for (i in ghostSteps.indices) {
+        if (i == 0) {
+            continue
+        }
+        
+        lcm = lcm(lcm, ghostSteps[i])
+    }
+    
+    println("Day 8 part 2: $lcm")
     println()
+}
+
+fun lcm(number1: Long, number2: Long): Long {
+    val high = number1.coerceAtLeast(number2)
+    val low = number1.coerceAtMost(number2)
+    var lcm = high
+    
+    while (lcm % low != 0L) {
+        lcm += high
+    }
+    
+    return lcm
+}
+
+fun countGhostSteps(order: String, map: Map<String, LeftRightInstruction>): List<Long> {
+    var steps = 0L
+    
+    val currentNodes = map.keys.filter { it.endsWith("A") }.toTypedArray()
+    
+    val stepsList = mutableListOf<Long>()
+    
+    while (true) {
+        for (i in order.indices) {
+            steps++
+            for (j in currentNodes.indices) {
+                val nextNode = map[currentNodes[j]]!!
+
+                currentNodes[j] = if (order[i] == 'R') {
+                    nextNode.right
+                } else {
+                    nextNode.left
+                }
+                
+                if (currentNodes[j].endsWith("Z")) {
+                    stepsList.add(steps)
+                }
+                
+                if (stepsList.size == currentNodes.size) {
+                    return stepsList
+                }
+            }
+        }
+    }
 }
 
 fun countSteps(order: String, map: Map<String, LeftRightInstruction>): Long {
