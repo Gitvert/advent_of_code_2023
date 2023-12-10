@@ -13,23 +13,94 @@ fun day10 (lines: List<String>) {
     val pipes = parsePipes(lines)
     val startDirections = findStartDirections(start, lines)
     
-    val steps = countSteps(startDirections, pipes, start)
+    val loop = findLoop(startDirections, pipes, start)
+    
+    val newMap = buildNewMap(lines, loop)
 
-    println("Day 10 part 1: $steps")
-    println("Day 10 part 2: ")
+    markEnclosedTiles(newMap, loop)
+
+    printPipeMap(newMap)
+    
+    val enclosedTilesCount = newMap.flatten().count { it == 'I' }
+
+    println("Day 10 part 2: $enclosedTilesCount")
     println()
 }
 
-fun countSteps(startDirections: Pair<Pos, Pos>, pipes: List<List<Pipe?>>, start: Pos): Int {
+fun markEnclosedTiles(newMap: List<MutableList<Char>>, loop: List<Pos>) {
+    val startDirection = Pos(loop[1].x - loop[0].x, loop[1].y - loop[0].y)
+    var currentDirection = startDirection
+    var lastDirection = Pos(loop.first().x - loop.last().x, loop.first().y - loop.last().y)
+    var searchDirection: Pos
+    var flipSearchDirection = true
+    var hasTurnedOnce = false
+    
+    for (i in loop.indices) {
+        if (i == 0 || i == loop.size - 1) {
+            continue
+        }
+        if (loop[i - 1].x != loop[i + 1].x && loop[i - 1].y != loop[i + 1].y) {
+            lastDirection = currentDirection
+            if (currentDirection == startDirection && hasTurnedOnce) {
+                flipSearchDirection = !flipSearchDirection
+            }
+            hasTurnedOnce = true
+        }
+        
+        currentDirection = Pos(loop[i + 1].x - loop[i].x, loop[i + 1].y - loop[i].y)
+        
+        searchDirection = if (flipSearchDirection) {
+            Pos(lastDirection.x * -1, lastDirection.y * -1)
+        } else {
+            lastDirection
+        }
+        
+        try {
+            if (newMap[loop[i].y + searchDirection.y][loop[i].x + searchDirection.x] != '*') {
+                newMap[loop[i].y + searchDirection.y][loop[i].x + searchDirection.x] = 'I'
+
+                printPipeMap(newMap)
+            }
+        } catch (_: IndexOutOfBoundsException) {
+            //println(e)
+        }
+    }
+}
+
+fun buildNewMap(lines: List<String>, loop: List<Pos>): List<MutableList<Char>> {
+    val newMap = mutableListOf<MutableList<Char>>()
+    
+    lines.forEachIndexed { y, row ->
+        val line = mutableListOf<Char>()
+        row.forEachIndexed { x, _ ->
+            if (loop.contains(Pos(x,y))) {
+                line.add('*')
+            } else {
+                line.add('.')
+            }
+        }
+        newMap.add(line)
+    }
+    
+    return newMap
+}
+
+fun findLoop(startDirections: Pair<Pos, Pos>, pipes: List<List<Pipe?>>, start: Pos): List<Pos> {
     val forward = mutableListOf(start, startDirections.first)
     val backwards = mutableListOf(start, startDirections.second)
     
-    while (forward.last() != backwards.last()) {
+    while (forward.last() != start) {
         forward.add(findNextPipe(forward.last(), forward[forward.size - 2], pipes))
         backwards.add(findNextPipe(backwards.last(), backwards[backwards.size - 2], pipes))
+        
+        if (forward.last() == backwards.last() && forward.last() != start) {
+            println("Day 10 part 1: ${forward.size - 1}")
+        }
     }
-    
-    return forward.size - 1
+
+    forward.removeLast()
+
+    return forward
 }
 
 fun findNextPipe(currPos: Pos, prevPos: Pos, pipes: List<List<Pipe?>>): Pos {
@@ -45,17 +116,33 @@ fun findNextPipe(currPos: Pos, prevPos: Pos, pipes: List<List<Pipe?>>): Pos {
 fun findStartDirections(start: Pos, lines: List<String>): Pair<Pos, Pos> {
     val startDirections = mutableListOf<Pos>()
     
-    if (lines[start.y][start.x + 1] == '-' || lines[start.y][start.x + 1] == 'J' || lines[start.y][start.x + 1] == '7') {
-        startDirections.add(Pos(start.x + 1, start.y))
+    try {
+        if (lines[start.y][start.x + 1] == '-' || lines[start.y][start.x + 1] == 'J' || lines[start.y][start.x + 1] == '7') {
+            startDirections.add(Pos(start.x + 1, start.y))
+        }
+    } catch (_: IndexOutOfBoundsException) {
+        
     }
-    if (lines[start.y][start.x -1] == '-' || lines[start.y][start.x -1] == 'L' || lines[start.y][start.x -1] == 'F') {
-        startDirections.add(Pos(start.x - 1, start.y))
+    try {
+        if (lines[start.y][start.x - 1] == '-' || lines[start.y][start.x - 1] == 'L' || lines[start.y][start.x - 1] == 'F') {
+            startDirections.add(Pos(start.x - 1, start.y))
+        }
+    } catch (_: IndexOutOfBoundsException) {
+
     }
-    if (lines[start.y + 1][start.x] == '|' || lines[start.y + 1][start.x] == 'L' || lines[start.y + 1][start.x] == 'J') {
-        startDirections.add(Pos(start.x, start.y + 1))
+    try {
+        if (lines[start.y + 1][start.x] == '|' || lines[start.y + 1][start.x] == 'L' || lines[start.y + 1][start.x] == 'J') {
+            startDirections.add(Pos(start.x, start.y + 1))
+        }
+    } catch (_: IndexOutOfBoundsException) {
+
     }
-    if (lines[start.y - 1][start.x] == '|' || lines[start.y - 1][start.x] == '7' || lines[start.y - 1][start.x] == 'F') {
-        startDirections.add(Pos(start.x, start.y - 1))
+    try {
+        if (lines[start.y - 1][start.x] == '|' || lines[start.y - 1][start.x] == '7' || lines[start.y - 1][start.x] == 'F') {
+            startDirections.add(Pos(start.x, start.y - 1))
+        }
+    } catch (_: IndexOutOfBoundsException) {
+
     }
     
     return Pair(startDirections[0], startDirections[1])
@@ -64,9 +151,9 @@ fun findStartDirections(start: Pos, lines: List<String>): Pair<Pos, Pos> {
 fun parsePipes(lines: List<String>): List<List<Pipe?>> {
     val pipes = mutableListOf<List<Pipe?>>()
     
-    lines.forEachIndexed { _, row ->
+    lines.forEach { row ->
         val rowPipes = mutableListOf<Pipe?>()
-        row.forEachIndexed { _, cell ->
+        row.forEach { cell ->
             val pipe = LETTER_DIRECTION_MAP[cell]
             if (pipe == null) {
                 rowPipes.add(null)
@@ -92,6 +179,16 @@ fun findStart(lines: List<String>): Pos {
     }
     
     return start
+}
+
+fun printPipeMap(newMap: List<MutableList<Char>>) {
+    newMap.forEach { row ->
+        row.forEach { cell -> 
+            print(cell)
+        }
+        println()
+    }
+    println()
 }
 
 data class Pipe(val from: Pos, val to: Pos)
