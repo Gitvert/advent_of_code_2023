@@ -4,28 +4,89 @@ var cacheHits = 0L
 
 fun day12 (lines: List<String>) {
     var totalArrangements = 0L
+    val allPossibilities = mutableListOf<String>()
     
     lines.forEach { line ->
-        totalArrangements += findArrangements(line.split(" ")[0], line.split(" ")[1].split(",").map { Integer.parseInt(it) })
+        val spring = line.split(" ")[0]
+        val groups = line.split(" ")[1].split(",").map { Integer.parseInt(it) }
+        generateAllPossibilities(groups, "", allPossibilities, spring)
+        totalArrangements += allPossibilities.size
+        allPossibilities.clear()
         foundSprings.clear()
     }
 
     println("Day 12 part 1: $totalArrangements")
     
     val unfoldedLines = unfoldLines(lines)
-    val totalUnfoldedArrangements = 0L
+    var totalUnfoldedArrangements = 0L
 
     /*unfoldedLines.forEach { line ->
         println(line)
         totalArrangements += findArrangements(line.split(" ")[0], line.split(" ")[1].split(",").map { Integer.parseInt(it) })
         foundSprings.clear()
     }*/
+
+    unfoldedLines.forEach { line ->
+        val spring = line.split(" ")[0]
+        val groups = line.split(" ")[1].split(",").map { Integer.parseInt(it) }
+        
+        println(spring)
+        
+        generateAllPossibilities(groups, "", allPossibilities, spring)
+        totalUnfoldedArrangements += allPossibilities.size
+        allPossibilities.clear()
+    }
+    
     println(hits)
     println(foundSprings.size)
     println(cacheHits)
     
+    //generateAllPossibilities(mutableListOf(3,2,1), "", allPossibilities, "?###????????")
+    
     println("Day 12 part 2: $totalUnfoldedArrangements")
     println()
+}
+
+fun generateAllPossibilities(groups: List<Int>, spring: String, allPossibilities: MutableList<String>, actualPattern: String) {
+    if (spring.length + groups.sum() + groups.size - 1 > actualPattern.length) {
+        return
+    }
+    
+    for (i in spring.indices) {
+        if (actualPattern[i] != '?' && actualPattern[i] != spring[i]) {
+            return
+        }
+    }
+    
+    if (groups.isEmpty()) {
+        var fillDots = ""
+        
+        for (i in 1..actualPattern.length-spring.length) {
+            fillDots += "."
+        }
+        
+        val newEntry = spring + fillDots
+        for (i in actualPattern.indices) {
+            if (actualPattern[i] != '?' && actualPattern[i] != newEntry[i]) {
+                return
+            }
+        }
+        
+        allPossibilities.add(newEntry)
+        return
+    }
+
+    generateAllPossibilities(groups, "$spring.", allPossibilities, actualPattern)
+    
+    var localSpring = spring
+    
+    if (localSpring.isEmpty() || localSpring.last() == '.') {
+        for (i in 1..groups[0]) {
+            localSpring += '#'
+        }
+
+        generateAllPossibilities(groups.drop(1), localSpring, allPossibilities, actualPattern)
+    }
 }
 
 fun findArrangements(springs: String, groups: List<Int>): Long {
