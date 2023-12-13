@@ -26,7 +26,7 @@ fun day12 (lines: List<String>) {
         foundSprings.clear()
     }*/
 
-    unfoldedLines.forEach { line ->
+    /*unfoldedLines.forEach { line ->
         val spring = line.split(" ")[0]
         val groups = line.split(" ")[1].split(",").map { Integer.parseInt(it) }
         
@@ -35,7 +35,7 @@ fun day12 (lines: List<String>) {
         generateAllPossibilities(groups, "", allPossibilities, spring)
         totalUnfoldedArrangements += allPossibilities.size
         allPossibilities.clear()
-    }
+    }*/
     
     println(hits)
     println(foundSprings.size)
