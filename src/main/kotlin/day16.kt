@@ -1,31 +1,139 @@
+import kotlin.math.max
+
 fun day16 (lines: List<String>) {
     val beams = if (lines[0][0] == '\\') {
         mutableListOf(Beam(0, 0, 0, 1))
     } else {
         mutableListOf(Beam(0, 0, 1, 0))
     }
-    val visitedPositions = mutableSetOf(Pos(0, 0))
+    val part1 = findVisitedPositions(lines, beams, Pos(0, 0))
     
+    println("Day 16 part 1: $part1")
+    
+    val part2 = max(max(max(enterFromLeft(lines), enterFromRight(lines)), enterFromTop(lines)), enterFromBottom(lines))
+    
+    println("Day 16 part 2: $part2")
+    println()
+}
+
+fun enterFromLeft(lines: List<String>): Int {
+    var highestVisited = Int.MIN_VALUE
+    
+    for (y in lines.indices) {
+        val beams = mutableListOf<Beam>()
+        
+        when (lines[y][0]) {
+            '\\' -> beams.add(Beam(0, y, 0, 1))
+            '/' -> beams.add(Beam(0, y, 0, -1))
+            '|' -> {
+                beams.add(Beam(0, y, 0, 1))
+                beams.add(Beam(0, y, 0, -1))
+            }
+            else -> beams.add(Beam(0, y, 1, 0))
+        }
+        
+        val visited = findVisitedPositions(lines, beams, Pos(0, y))
+        if (visited > highestVisited) {
+            highestVisited = visited
+        }
+    }
+    
+    return highestVisited
+}
+
+fun enterFromRight(lines: List<String>): Int {
+    var highestVisited = Int.MIN_VALUE
+
+    for (y in lines.indices) {
+        val beams = mutableListOf<Beam>()
+
+        when (lines[y][lines[0].indices.last]) {
+            '\\' -> beams.add(Beam(lines[0].indices.last, y, 0, -1))
+            '/' -> beams.add(Beam(lines[0].indices.last, y, 0, 1))
+            '|' -> {
+                beams.add(Beam(lines[0].indices.last, y, 0, 1))
+                beams.add(Beam(lines[0].indices.last, y, 0, -1))
+            }
+            else -> beams.add(Beam(lines[0].indices.last, y, -1, 0))
+        }
+
+        val visited = findVisitedPositions(lines, beams, Pos(lines[0].indices.last, y))
+        if (visited > highestVisited) {
+            highestVisited = visited
+        }
+    }
+
+    return highestVisited
+}
+
+fun enterFromTop(lines: List<String>): Int {
+    var highestVisited = Int.MIN_VALUE
+
+    for (x in lines[0].indices) {
+        val beams = mutableListOf<Beam>()
+
+        when (lines[0][x]) {
+            '\\' -> beams.add(Beam(x, 0, 1, 0))
+            '/' -> beams.add(Beam(x, 0, -1, 0))
+            '-' -> {
+                beams.add(Beam(x, 0, 1, 0))
+                beams.add(Beam(x, 0, -1, 0))
+            }
+            else -> beams.add(Beam(x, 0, 0, 1))
+        }
+
+        val visited = findVisitedPositions(lines, beams, Pos(x, 0))
+        if (visited > highestVisited) {
+            highestVisited = visited
+        }
+    }
+
+    return highestVisited
+}
+
+fun enterFromBottom(lines: List<String>): Int {
+    var highestVisited = Int.MIN_VALUE
+
+    for (x in lines[0].indices) {
+        val beams = mutableListOf<Beam>()
+
+        when (lines[lines.indices.last][x]) {
+            '\\' -> beams.add(Beam(x, lines.indices.last, -1, 0))
+            '/' -> beams.add(Beam(x, lines.indices.last, 1, 0))
+            '-' -> {
+                beams.add(Beam(x, lines.indices.last, 1, 0))
+                beams.add(Beam(x, lines.indices.last, -1, 0))
+            }
+            else -> beams.add(Beam(x, lines.indices.last, 0, -1))
+        }
+
+        val visited = findVisitedPositions(lines, beams, Pos(x, lines.indices.last))
+        if (visited > highestVisited) {
+            highestVisited = visited
+        }
+    }
+
+    return highestVisited
+}
+
+fun findVisitedPositions(lines: List<String>, beams: MutableList<Beam>, startPos: Pos): Int {
+    val visitedPositions = mutableSetOf(startPos)
+
     var stepsWithoutNewVisitedPositions = 0
-    
+
     while (stepsWithoutNewVisitedPositions < 10) {
         val visitedBefore = visitedPositions.size
         step(lines, beams, visitedPositions)
         val visitedAfter = visitedPositions.size
-        
+
         if (visitedBefore == visitedAfter) {
             stepsWithoutNewVisitedPositions++
         } else {
             stepsWithoutNewVisitedPositions = 0
         }
     }
-    
-    val validVisitedPositions = visitedPositions.filter { it.x >= 0 && it.y >= 0 && it.x < lines[0].length && it.y < lines.size }
-    
-    println("Day 16 part 1: ${validVisitedPositions.size}")
-    
-    println("Day 16 part 2: ")
-    println()
+
+    return visitedPositions.filter { it.x >= 0 && it.y >= 0 && it.x < lines[0].length && it.y < lines.size }.size
 }
 
 fun step(lines: List<String>, beams: MutableList<Beam>, visitedPositions: MutableSet<Pos>) {
