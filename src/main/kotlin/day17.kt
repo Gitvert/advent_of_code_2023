@@ -3,14 +3,15 @@ fun day17 (lines: List<String>) {
     val maxX = map[0].indices.last
     val maxY = map.indices.last
 
-    val leastHeat = dijkstra(map, maxX, maxY)
+    val leastHeatPart1 = dijkstra(map, maxX, maxY, false)
+    println("Day 17 part 1: $leastHeatPart1")
     
-    println("Day 17 part 1: $leastHeat")
-    println("Day 17 part 2: ")
+    val leastHeatPart2 = dijkstra(map, maxX, maxY, true)
+    println("Day 17 part 2: $leastHeatPart2")
     println()
 }
 
-fun dijkstra(map: List<List<Int>>, maxX: Int, maxY: Int): Int {
+fun dijkstra(map: List<List<Int>>, maxX: Int, maxY: Int, part2: Boolean): Int {
     val lowestCost = mutableMapOf<NodeKey, Int>()
     val queue = mutableSetOf<Node>()
     
@@ -24,13 +25,13 @@ fun dijkstra(map: List<List<Int>>, maxX: Int, maxY: Int): Int {
         val newNodes = mutableSetOf<Node>()
         
         if (currentNode.key.direction.x == 0) {
-            evaluateNewNode(map, currentNode, Pos(1, 0), 3, newNodes, maxX, maxY)
-            evaluateNewNode(map, currentNode, Pos(-1, 0), 3, newNodes, maxX, maxY)
+            evaluateNewNode(map, currentNode, Pos(1, 0), newNodes, maxX, maxY, part2)
+            evaluateNewNode(map, currentNode, Pos(-1, 0), newNodes, maxX, maxY, part2)
         }
         
         if (currentNode.key.direction.y == 0) {
-            evaluateNewNode(map, currentNode, Pos(0, 1), 3, newNodes, maxX, maxY)
-            evaluateNewNode(map, currentNode, Pos(0, -1), 3, newNodes, maxX, maxY)
+            evaluateNewNode(map, currentNode, Pos(0, 1), newNodes, maxX, maxY, part2)
+            evaluateNewNode(map, currentNode, Pos(0, -1), newNodes, maxX, maxY, part2)
         }
         
         newNodes.forEach { newNode ->
@@ -48,15 +49,18 @@ fun dijkstra(map: List<List<Int>>, maxX: Int, maxY: Int): Int {
     return lowestCost.entries.filter { it.key.pos == Pos(maxX, maxY) }.minOf { it.value }
 }
 
-fun evaluateNewNode(map: List<List<Int>>, start: Node, direction: Pos, steps: Int, newNodes: MutableSet<Node>, maxX: Int, maxY: Int) {
+fun evaluateNewNode(map: List<List<Int>>, start: Node, direction: Pos, newNodes: MutableSet<Node>, maxX: Int, maxY: Int, part2: Boolean) {
     var addedHeatLoss = 0
-    for (i in 1..steps) {
+    val endStep = if (part2) { 10 } else { 3 }
+    for (i in 1..endStep) {
         val newNode = Node(NodeKey(Pos(start.key.pos.x + direction.x * i, start.key.pos.y + direction.y * i), direction), start.heatLoss)
         if (newNode.key.pos.x in 0..maxX && newNode.key.pos.y in 0..maxY) {
             addedHeatLoss += map[newNode.key.pos.y][newNode.key.pos.x]
             newNode.heatLoss += addedHeatLoss
             
-            newNodes.add(newNode)
+            if (!part2 || i > 3) {
+                newNodes.add(newNode)
+            }
         }
     }
 }
