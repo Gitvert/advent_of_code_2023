@@ -3,14 +3,21 @@ import kotlin.random.Random
 fun day20 (lines: List<String>) {
     val connections = parseConnections(lines)
     val modules = parseModules(lines, connections)
-    val random = Random(1337)
-    
+
     var lowPulses = 0L
     var highPulses = 0L
-    
-    for (i in 1..1000) {
+
+    val rxSource = connections.find { it.second == "rx" }!!.first
+    val rxSourceSources = connections.filter { it.second == rxSource }.map { it.first }
+    val rxSourceSourcesCycles = mutableMapOf<String, Int>()
+
+    rxSourceSources.forEach {
+        rxSourceSourcesCycles[it] = 0
+    }
+
+    for (i in 1..5000) {
         val pulses = mutableListOf<Pulse>()
-        pulses.add(Pulse("broadcaster", Signal.LOW, random.nextInt()))
+        pulses.add(Pulse("broadcaster", Signal.LOW))
         lowPulses++
 
         while (pulses.isNotEmpty()) {
@@ -23,20 +30,32 @@ fun day20 (lines: List<String>) {
                 } else {
                     highPulses++
                 }
-                
+
                 if (modules.containsKey(connection.second)) {
                     val module = modules[connection.second]!!
                     val result = module.receivePulse(nextPulse.signal, nextPulse.source)
                     if (result != null) {
-                        pulses.add(Pulse(connection.second, result, random.nextInt()))
+                        pulses.add(Pulse(connection.second, result))
+                        if (rxSourceSources.contains(connection.second) && result == Signal.HIGH) {
+                            rxSourceSourcesCycles[connection.second] = i
+                        }
                     }
                 }
             }
         }
+
+        if (i == 1000) {
+            println("Day 20 part 1: ${lowPulses * highPulses}")
+        }
+
+        if (rxSourceSourcesCycles.values.count { it > 0 } == rxSourceSourcesCycles.size) {
+            break
+        }
     }
     
-    println("Day 20 part 1: ${lowPulses * highPulses}")
-    println("Day 20 part 2: ")
+    val fewestButtonPresses = rxSourceSourcesCycles.values.fold(1L) { acc, it -> acc * it }
+
+    println("Day 20 part 2: $fewestButtonPresses")
     println()
 }
 
@@ -84,7 +103,7 @@ enum class Signal {
     HIGH
 }
 
-data class Pulse(val source: String, val signal: Signal, val seed: Int)
+data class Pulse(val source: String, val signal: Signal)
 
 class FlipFlopModule : Module {
     private var on = false
