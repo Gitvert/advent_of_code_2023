@@ -1,5 +1,8 @@
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.random.Random
+
+val random: Random = Random(1337)
 
 fun day22 (lines: List<String>) {
 
@@ -11,7 +14,6 @@ fun day22 (lines: List<String>) {
 fun removeBlocks(bricks: List<Brick>) {
     var safeToDisintegrate = 0
     var totalFallen = 0
-    var index = 0
     
     bricks.forEach { brick ->
         val settledBricks = settleBricks(bricks.filterNot { brick == it }).toMutableList()
@@ -22,8 +24,6 @@ fun removeBlocks(bricks: List<Brick>) {
             val unchanged = settledBricks.intersect(bricks.filterNot { brick == it }.toSet()).size
             totalFallen += settledBricks.size - unchanged
         }
-
-        println("${index++}: total fallen: $totalFallen")
     }
     
     
@@ -76,6 +76,7 @@ fun moveDown(brick: Brick): Brick {
     return Brick(
         Point(brick.start.x, brick.start.y, brick.start.z - 1),
         Point(brick.end.x, brick.end.y, brick.end.z - 1),
+        brick.id,
     )
 }
 
@@ -125,12 +126,12 @@ fun parseBricks(lines: List<String>): MutableList<Brick> {
         val endNumbers = endString.split(",")
         val start = Point(Integer.parseInt(startNumbers[0]), Integer.parseInt(startNumbers[1]), Integer.parseInt(startNumbers[2]))
         val end = Point(Integer.parseInt(endNumbers[0]), Integer.parseInt(endNumbers[1]), Integer.parseInt(endNumbers[2]))
-        bricks.add(Brick(start, end))
+        bricks.add(Brick(start, end, random.nextInt()))
     }
     
     return bricks
 }
 
-data class Brick(val start: Point, val end: Point)
+data class Brick(val start: Point, val end: Point, val id: Int)
 
 data class Point(val x: Int, val y: Int, val z: Int)
