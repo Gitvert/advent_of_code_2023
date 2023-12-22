@@ -1,30 +1,35 @@
-import javax.swing.text.html.HTML.Tag.I
 import kotlin.math.max
 import kotlin.math.min
 
 fun day22 (lines: List<String>) {
 
     val bricks = parseBricks(lines)
-    val settledBricks = settleBricks(bricks)
-    val safeToDisintegrate = findNoOfSafeToDisintegrate(settledBricks)
-    
-    println("Day 22 part 1: $safeToDisintegrate")
-    println("Day 22 part 2: ")
-    println()
+    val settledBricks = settleBricks(bricks.sortedBy { it.start.z })
+    removeBlocks(settledBricks)
 }
 
-fun findNoOfSafeToDisintegrate(bricks: List<Brick>): Int {
+fun removeBlocks(bricks: List<Brick>) {
     var safeToDisintegrate = 0
+    var totalFallen = 0
+    var index = 0
     
     bricks.forEach { brick ->
         val settledBricks = settleBricks(bricks.filterNot { brick == it }).toMutableList()
 
         if (settledBricks == bricks.filterNot { brick == it }) {
             safeToDisintegrate++
+        } else {
+            val unchanged = settledBricks.intersect(bricks.filterNot { brick == it }.toSet()).size
+            totalFallen += settledBricks.size - unchanged
         }
+
+        println("${index++}: total fallen: $totalFallen")
     }
     
-    return safeToDisintegrate
+    
+    println("Day 22 part 1: $safeToDisintegrate")
+    println("Day 22 part 2: $totalFallen")
+    println()
 }
 
 fun settleBricks(bricks: List<Brick>): List<Brick> {
